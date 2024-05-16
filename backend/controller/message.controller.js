@@ -1,6 +1,7 @@
 // Import Conversation and Message models
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
 // Controller function to send a message
 export const sendMessage = async (req, res) => {
@@ -35,17 +36,22 @@ export const sendMessage = async (req, res) => {
     if (newMessage) {
       conversation.messages.push(newMessage._id);
     }
-
-    //socket io functionality to add here
-
     // await conversation.save();
     // await newMessage.save();
 
     //this will run in parallel and is better and faster approach that the above one commented
     await Promise.all([conversation.save(), newMessage.save()]);
 
+    //socket io functionality to add here
+
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      // Send a response with the new message
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
+
     // Send a response with the new message
-    res.status(200).json(newMessage);
+    res.status(201).json(newMessage);
   } catch (error) {
     // Handle any errors that occur during message sending
     console.log("error in sendMessage controller: ", error);
@@ -64,16 +70,17 @@ export const getMessage = async (req, res) => {
       },
     }).populate("messages"); // POPULATE will get messages instead of the id reference
 
-    if(!conversation) {
+    if (!conversation) {
       return res.status(404).json([]);
     }
 
-    const messages = conversation.messages
+    const messages = conversation.messages;
 
     res.status(200).json(messages);
-
   } catch (error) {
     console.log("error in sendMessage controller: ", error);
     res.status(500).json({ message: error.message });
   }
 };
+
+
