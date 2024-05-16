@@ -12,7 +12,7 @@ const generateTokenAndSetCookie = (userId, res) => {
     maxAge: 15 * 24 * 60 * 60 * 1000, // The cookie will expire in 15 days (same as the token)
     httpOnly: true, // The cookie can only be accessed by the server, not client-side scripts
     sameSite: "strict", // The cookie will only be sent for same-site requests
-    secure: process.env.NODE_ENV === "production", // The cookie will only be sent over HTTPS
+    secure: process.env.NODE_ENV === "development", // The cookie will only be sent over HTTPS
   });
 };
 export default generateTokenAndSetCookie;
